@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I Per CPU </title>
+    <style>
+        /* CSS Variables & Theme (ขาว, ดำ, ม่วงชมพู, เทาเข้ม) */
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --text-light: #ffffff;
+            --text-gray: #a0a0a0;
+            --accent-pink: #d800a6;
+            --accent-purple: #8a2be2;
+            --gradient-accent: linear-gradient(135deg, #d800a6, #8a2be2);
+            --border-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent-pink);
+        }
+
+        .auth-btn {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        .auth-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Page Display System */
+        .page {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+            width: 100%;
+            flex: 1;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Hero Banner (Home Page) */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: radial-gradient(circle at center, rgba(216, 0, 166, 0.15) 0%, rgba(18, 18, 18, 1) 70%);
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Product Grid */
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--accent-pink);
+            padding-left: 10px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-pink);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 180px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            color: var(--accent-pink);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .add-cart-btn {
+            background-color: transparent;
+            border: 1px solid var(--accent-pink);
+            color: var(--text-light);
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .add-cart-btn:hover {
+            background-color: var(--accent-pink);
+        }
+
+        /* Cart Page */
+        .cart-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .cart-summary {
+            margin-top: 1.5rem;
+            text-align: right;
+        }
+
+        .checkout-btn {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Contact Page */
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .contact-wrapper { grid-template-columns: 1fr; }
+        }
+
+        .contact-info, .contact-form {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-gray);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: white;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--accent-pink);
+            outline: none;
+        }
+
+        .submit-btn {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid var(--accent-pink);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: var(--text-gray);
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header & Navigation -->
+    <header>
+        <nav class="navbar">
+            <div class="logo" onclick="showPage('home')">I Per CPU</div>
+            <ul class="nav-links">
+                <li><a id="nav-home" class="active" onclick="showPage('home')">หน้าหลัก</a></li>
+                <li><a id="nav-cart" onclick="showPage('cart')">ตะกร้าสินค้า (<span id="cart-count">0</span>)</a></li>
+                <li><a id="nav-contact" onclick="showPage('contact')">ติดต่อเรา</a></li>
+            </ul>
+            <button class="auth-btn" id="login-nav-btn" onclick="openModal()">ลงชื่อเข้าใช้</button>
+        </nav>
+    </header>
+
+    <!-- Page 1: Home Page -->
+    <main id="home" class="page active">
+        <section class="hero">
+            <h1>COMPUTER PPPEPER</h1>
+            <p>อุปกรณ์คอมพิวเตอร์ </p>
+        </section>
+
+        <h2 class="section-title">สินค้าแนะนำ & โปรโมชั่น</h2>
+    <div class="product-grid">
+    <!-- Product 1 -->
+    <div class="product-card">
+        <img class="product-img" src="https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=600&q=80" alt="RTX 4080 Super">
+        <div class="product-title">CPU Ryzen999</div>
+        <div class="product-price">฿199,000</div>
+        <button class="add-cart-btn" onclick="addToCart('CPU Ryzen999', 199000)">เพิ่มลงตะกร้า</button>
+    </div>
+   
+    <!-- Product 2 -->
+    <div class="product-card">
+        <img class="product-img" src="https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=600&q=80" alt="Core i9-14900K">
+        <div class="product-title">ชุดน้ำแต่ง</div>
+        <div class="product-price">฿8,900</div>
+        <button class="add-cart-btn" onclick="addToCart('ชุดน้ำแต่ง', 8900)">เพิ่มลงตะกร้า</button>
+    </div>
+   
+    <!-- Product 3 -->
+    <div class="product-card">
+        <img class="product-img" src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=600&q=80" alt="Mechanical Keyboard">
+        <div class="product-title">คีย์บอร์ด</div>
+        <div class="product-price">฿2,199</div>
+        <button class="add-cart-btn" onclick="addToCart('คีย์บอร์ด', 2199)">เพิ่มลงตะกร้า</button>
+    </div>
+   
+    <!-- Product 4 -->
+    <div class="product-card">
+        <img class="product-img" src="https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=600&q=80" alt="Gaming Mouse">
+        <div class="product-title">เมาส์ไร้สาย</div>
+        <div class="product-price">฿1,990</div>
+        <button class="add-cart-btn" onclick="addToCart('เมาส์ไร้สาย', 1990)">เพิ่มลงตะกร้า</button>
+    </div>
+</div>
+    </main>
+
+    <!-- Page 2: Cart Page -->
+    <main id="cart" class="page">
+        <h2 class="section-title">ตะกร้าสินค้าของคุณ</h2>
+        <div class="cart-container">
+            <div id="cart-items-list">
+                <p style="color: var(--text-gray); text-align: center;">ไม่มีสินค้าในตะกร้า</p>
+            </div>
+            <div class="cart-summary">
+                <h3>ราคารวมทั้งหมด: <span id="cart-total-price" style="color: var(--accent-pink);">฿0</span></h3>
+                <button class="checkout-btn" onclick="checkout()">ดำเนินการสั่งซื้อ</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Page 3: Contact Page -->
+    <main id="contact" class="page">
+        <h2 class="section-title">ติดต่อเรา</h2>
+        <div class="contact-wrapper">
+            <div class="contact-info">
+                <h3 style="margin-bottom: 1rem; color: var(--accent-pink);">ข้อมูลการติดต่อ</h3>
+                <p style="margin-bottom: 0.5rem;">📍 ที่อยู่:999/99 อำเภอเมืองกรุงเทพ จังหวัดกรุงเทพมหนคร 10160  </p>
+                <p style="margin-bottom: 0.5rem;">📞 เบอร์โทรศัพท์: 098-7654321</p>
+                <p style="margin-bottom: 0.5rem;">✉️ อีเมล: s69122202040@ssru.ac.th</p>
+
+            </div>
+            <div class="contact-form">
+                <h3 style="margin-bottom: 1rem;">ส่งข้อความหาเรา</h3>
+                <form onsubmit="handleContactSubmit(event)">
+                    <div class="form-group">
+                        <label>ชื่อ-นามสกุล</label>
+                        <input type="text" required placeholder="กรอกชื่อของคุณ">
+                    </div>
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" required placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>ข้อความ</label>
+                        <textarea rows="4" required placeholder="พิมพ์ข้อความของคุณที่นี่..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">ส่งข้อความ</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 style="margin-bottom: 1.5rem; text-align: center; color: var(--accent-pink);">ลงชื่อเข้าใช้</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>ชื่อผู้ใช้ / อีเมล</label>
+                    <input type="text" id="username" required placeholder="Username หรือ Email">
+                </div>
+                <div class="form-group">
+                    <label>รหัสผ่าน</label>
+                    <input type="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="submit-btn" style="margin-top: 1rem;">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; I Per CPU 2026</p>
+    </footer>
+
+    <!-- JavaScript logic -->
+      <script>
+        let cart = [];
+        let isLoggedIn = false;
+
+        // Navigation Management
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
+           
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById(`nav-${pageId}`).classList.add('active');
+        }
+
+        // Add to Cart
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            updateCartUI();
+            alert(`เพิ่ม "${name}" ลงในตะกร้าแล้ว!`);
+        }
+
+        // Update Cart UI
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const cartContainer = document.getElementById('cart-items-list');
+            const totalPriceElement = document.getElementById('cart-total-price');
+           
+            if (cart.length === 0) {
+                cartContainer.innerHTML = '<p style="color: var(--text-gray); text-align: center;">ไม่มีสินค้าในตะกร้า</p>';
+                totalPriceElement.innerText = '฿0';
+                return;
+            }
+
+            cartContainer.innerHTML = '';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                total += item.price;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+                itemDiv.innerHTML = `
+                    <div>
+                        <h4>${item.name}</h4>
+                        <span style="color: var(--accent-pink);">฿${item.price.toLocaleString()}</span>
+                    </div>
+                    <button style="background: none; border: none; color: #ff4d4d; cursor: pointer;" onclick="removeFromCart(${index})">ลบ</button>
+                `;
+                cartContainer.appendChild(itemDiv);
+            });
+
+            totalPriceElement.innerText = `฿${total.toLocaleString()}`;
+        }
+
+        // Remove from Cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                alert('กรุณาเลือกสินค้าอย่างน้อย 1 ชิ้นก่อนทำการสั่งซื้อ');
+                return;
+            }
+            if (!isLoggedIn) {
+                alert('กรุณาลงชื่อเข้าใช้ก่อนทำการสั่งซื้อ');
+                openModal();
+                return;
+            }
+            alert('ขอบคุณสำหรับรายการสั่งซื้อ! ทางเราได้รับคำสั่งซื้อของคุณเรียบร้อยแล้ว');
+            cart = [];
+            updateCartUI();
+            showPage('home');
+        }
+
+        // Modal Controls
+        function openModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // Auth Logic
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            isLoggedIn = true;
+            document.getElementById('login-nav-btn').innerText = `สวัสดี, ${username}`;
+            document.getElementById('login-nav-btn').onclick = null;
+            closeModal();
+            alert(`ยินดีต้อนรับคุณ ${username} เข้าสู่ระบบ!`);
+        }
+
+        // Contact Form Logic
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            alert('ขอบคุณสำหรับข้อความ! เจ้าหน้าที่จะติดต่อกลับโดยเร็วที่สุด');
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>
+
